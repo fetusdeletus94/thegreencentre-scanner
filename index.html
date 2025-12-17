@@ -4,29 +4,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Scanner App</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 50px;
-    }
-    button {
-      font-size: 24px;
-      padding: 20px 40px;
-      margin-top: 20px;
-      border-radius: 12px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .instructions {
-      margin-top: 40px;
-      text-align: left;
-      display: inline-block;
-    }
+    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+    button { font-size: 24px; padding: 20px 40px; margin-top: 20px; border-radius: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #0056b3; }
+    .instructions { margin-top: 40px; text-align: left; display: inline-block; }
+    .checkbox-container { margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -45,6 +27,12 @@
   </ol>
 </div>
 
+<!-- Checkbox for “auto-open next time” -->
+<div class="checkbox-container">
+  <input type="checkbox" id="autoOpenCheckbox">
+  <label for="autoOpenCheckbox">Next time, go straight to app</label>
+</div>
+
 <script>
   const scannerUrl = "https://script.google.com/macros/s/AKfycbzfDIRd2ZyHA3CNmMV3Jh1lK_-Z8PJzJmC3cSCj97J7E9vLegDcBz4eCaDvzKBAsxQ/exec";
 
@@ -53,24 +41,29 @@
 
   const button = document.getElementById("openScanner");
   const instructions = document.getElementById("iphoneInstructions");
+  const checkbox = document.getElementById("autoOpenCheckbox");
 
-  // iPhone: show instructions, user taps manually
-  if (isIOS) {
-    instructions.style.display = "block";
-  }
+  // Check if user opted in previously
+  const autoOpen = localStorage.getItem("scannerAutoOpen");
 
-  // Android: click button triggers scanner
-  button.addEventListener("click", () => {
-    window.location.href = scannerUrl;
-  });
-
-  // Auto-open for returning users
-  if (localStorage.getItem("scannerVisited")) {
+  if (autoOpen === "true") {
+    // Auto-open scanner for returning users
     window.location.href = scannerUrl;
   } else {
-    localStorage.setItem("scannerVisited", "true");
+    // First-time / no opt-in
+    if (isIOS) instructions.style.display = "block";
+
+    button.addEventListener("click", () => {
+      // Save checkbox preference
+      if (checkbox.checked) {
+        localStorage.setItem("scannerAutoOpen", "true");
+      }
+      // Open scanner
+      window.location.href = scannerUrl;
+    });
   }
 </script>
 
 </body>
 </html>
+
