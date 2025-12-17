@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scanner App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+    }
+    button {
+      font-size: 24px;
+      padding: 20px 40px;
+      margin-top: 20px;
+      border-radius: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .instructions {
+      margin-top: 40px;
+      text-align: left;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Scanner App</h1>
+
+<!-- Button for scanner -->
+<button id="openScanner">Open Scanner App</button>
+
+<!-- iPhone instructions -->
+<div id="iphoneInstructions" class="instructions" style="display:none;">
+  <p>iPhone users: Follow these steps:</p>
+  <ol>
+    <li>Tap the Share button</li>
+    <li>Select <b>Add to Home Screen</b></li>
+  </ol>
+</div>
+
+<script>
+  const scannerUrl = "https://script.google.com/macros/s/AKfycbzfDIRd2ZyHA3CNmMV3Jh1lK_-Z8PJzJmC3cSCj97J7E9vLegDcBz4eCaDvzKBAsxQ/exec";
+
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isAndroid = /android/i.test(navigator.userAgent);
+
+  const button = document.getElementById("openScanner");
+  const instructions = document.getElementById("iphoneInstructions");
+
+  // iPhone: show instructions, user taps manually
+  if (isIOS) {
+    instructions.style.display = "block";
+  }
+
+  // Android: click button triggers scanner
+  button.addEventListener("click", () => {
+    window.location.href = scannerUrl;
+  });
+
+  // Auto-open for returning users
+  if (localStorage.getItem("scannerVisited")) {
+    window.location.href = scannerUrl;
+  } else {
+    localStorage.setItem("scannerVisited", "true");
+  }
+</script>
+
+</body>
+</html>
