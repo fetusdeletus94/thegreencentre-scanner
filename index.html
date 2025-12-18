@@ -3,67 +3,94 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Scanner App</title>
+
+  <!-- PWA manifest -->
+  <link rel="manifest" href="manifest.json">
+
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-    button { font-size: 24px; padding: 20px 40px; margin-top: 20px; border-radius: 12px; background-color: #007bff; color: white; border: none; cursor: pointer; }
-    button:hover { background-color: #0056b3; }
-    .instructions { margin-top: 40px; text-align: left; display: inline-block; }
-    .checkbox-container { margin-top: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    button {
+      font-size: 24px;
+      padding: 20px 40px;
+      margin-top: 20px;
+      border-radius: 12px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .instructions {
+      margin-top: 30px;
+      text-align: left;
+      display: inline-block;
+    }
+    .checkbox-container {
+      margin-top: 25px;
+      font-size: 16px;
+    }
   </style>
 </head>
+
 <body>
 
 <h1>Scanner App</h1>
 
-<!-- Button for scanner -->
 <button id="openScanner">Open Scanner App</button>
 
 <!-- iPhone instructions -->
 <div id="iphoneInstructions" class="instructions" style="display:none;">
-  <p>iPhone users: Follow these steps:</p>
+  <p><b>iPhone setup (one time):</b></p>
   <ol>
     <li>Tap the Share button</li>
     <li>Select <b>Add to Home Screen</b></li>
   </ol>
 </div>
 
-<!-- Checkbox for “auto-open next time” -->
 <div class="checkbox-container">
   <input type="checkbox" id="autoOpenCheckbox">
   <label for="autoOpenCheckbox">Next time, go straight to app</label>
 </div>
 
 <script>
-  const scannerUrl = "https://script.google.com/macros/s/AKfycbzfDIRd2ZyHA3CNmMV3Jh1lK_-Z8PJzJmC3cSCj97J7E9vLegDcBz4eCaDvzKBAsxQ/exec";
+  const scannerUrl =
+    "https://script.google.com/macros/s/AKfycbzfDIRd2ZyHA3CNmMV3Jh1lK_-Z8PJzJmC3cSCj97J7E9vLegDcBz4eCaDvzKBAsxQ/exec";
 
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  const isAndroid = /android/i.test(navigator.userAgent);
 
   const button = document.getElementById("openScanner");
   const instructions = document.getElementById("iphoneInstructions");
   const checkbox = document.getElementById("autoOpenCheckbox");
 
-  // Check if user opted in previously
-  const autoOpen = localStorage.getItem("scannerAutoOpen");
+  // If user previously opted in → auto open
+  if (localStorage.getItem("scannerAutoOpen") === "true") {
+    window.location.replace(scannerUrl);
+  }
 
-  if (autoOpen === "true") {
-    // Auto-open scanner for returning users
+  // Show iPhone instructions
+  if (isIOS) {
+    instructions.style.display = "block";
+  }
+
+  // Button click
+  button.addEventListener("click", () => {
+    if (checkbox.checked) {
+      localStorage.setItem("scannerAutoOpen", "true");
+    }
     window.location.href = scannerUrl;
-  } else {
-    // First-time / no opt-in
-    if (isIOS) instructions.style.display = "block";
+  });
 
-    button.addEventListener("click", () => {
-      // Save checkbox preference
-      if (checkbox.checked) {
-        localStorage.setItem("scannerAutoOpen", "true");
-      }
-      // Open scanner
-      window.location.href = scannerUrl;
-    });
+  // Register Service Worker (required for Android install banner)
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
   }
 </script>
 
 </body>
 </html>
-
