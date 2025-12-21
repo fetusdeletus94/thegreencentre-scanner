@@ -1,7 +1,8 @@
 {
   "name": "Scanner App",
   "short_name": "Scanner",
-  "start_url": "/",
+  "start_url": "/thegreencentre-scanner/",
+  "scope": "/thegreencentre-scanner/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#007bff",
