@@ -28,6 +28,14 @@
     }
     .checkbox-container { margin-top: 25px; font-size: 16px; }
   </style>
+
+  <script>
+    // --- IMMEDIATE AUTO-OPEN (VERY TOP, BEFORE DOM LOAD) ---
+    const scannerUrl = "https://script.google.com/macros/s/AKfycbzfDIRd2ZyHA3CNmMV3Jh1lK_-Z8PJzJmC3cSCj97J7E9vLegDcBz4eCaDvzKBAsxQ/exec";
+    if (localStorage.getItem("scannerAutoOpen") === "true") {
+      window.location.replace(scannerUrl);
+    }
+  </script>
 </head>
 <body>
 
@@ -52,60 +60,52 @@
 </div>
 
 <script>
-const scannerUrl = "https://script.google.com/macros/s/AKfycbzfDIRd2ZyHA3CNmMV3Jh1lK_-Z8PJzJmC3cSCj97J7E9vLegDcBz4eCaDvzKBAsxQ/exec";
+  // --- PLATFORM DETECTION ---
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const openButton = document.getElementById("openScanner");
+  const instructions = document.getElementById("iphoneInstructions");
+  const checkbox = document.getElementById("autoOpenCheckbox");
 
-// --- AUTO-OPEN IMMEDIATELY IF USER OPTED IN ---
-if (localStorage.getItem("scannerAutoOpen") === "true") {
-  window.location.replace(scannerUrl);
-}
+  if (isIOS) instructions.style.display = "block";
 
-// --- DETECT PLATFORM ---
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const openButton = document.getElementById("openScanner");
-const instructions = document.getElementById("iphoneInstructions");
-const checkbox = document.getElementById("autoOpenCheckbox");
+  // Open Scanner button click
+  openButton.addEventListener("click", () => {
+    if (checkbox.checked) localStorage.setItem("scannerAutoOpen", "true");
+    window.location.href = scannerUrl;
+  });
 
-// Show iPhone instructions
-if (isIOS) instructions.style.display = "block";
+  // --- SERVICE WORKER ---
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js");
+  }
 
-// Open Scanner button click
-openButton.addEventListener("click", () => {
-  if (checkbox.checked) localStorage.setItem("scannerAutoOpen", "true");
-  window.location.href = scannerUrl;
-});
-
-// --- SERVICE WORKER ---
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
-
-// --- INSTALL BUTTON ---
-let deferredPrompt;
-const installButton = document.createElement("button");
-installButton.textContent = "Install Scanner App";
-installButton.style.display = "none";
-installButton.style.marginTop = "20px";
-document.body.insertBefore(installButton, openButton.nextSibling);
-
-// Detect if app is launched from home screen
-const isInstalled = window.matchMedia('(display-mode: standalone)').matches ||
-                    window.navigator.standalone === true;
-
-// Show install button if eligible and not installed
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (!isInstalled) installButton.style.display = "inline-block";
-});
-
-// Trigger install prompt on button click
-installButton.addEventListener("click", async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const choiceResult = await deferredPrompt.userChoice;
-  deferredPrompt = null;
+  // --- INSTALL BUTTON ---
+  let deferredPrompt;
+  const installButton = document.createElement("button");
+  installButton.textContent = "Install Scanner App";
   installButton.style.display = "none";
-});
+  installButton.style.marginTop = "20px";
+  document.body.insertBefore(installButton, openButton.nextSibling);
+
+  // Detect if app is launched from home screen
+  const isInstalled = window.matchMedia('(display-mode: standalone)').matches ||
+                      window.navigator.standalone === true;
+
+  // Show install button if eligible and not installed
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!isInstalled) installButton.style.display = "inline-block";
+  });
+
+  // Trigger install prompt on button click
+  installButton.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const choiceResult = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installButton.style.display = "none";
+  });
 </script>
 
 </body>
