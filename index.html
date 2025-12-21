@@ -3,10 +3,7 @@
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Scanner App</title>
-
-  <!-- PWA manifest -->
   <link rel="manifest" href="manifest.json">
-
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -23,25 +20,20 @@
       border: none;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #0056b3;
-    }
+    button:hover { background-color: #0056b3; }
     .instructions {
       margin-top: 30px;
       text-align: left;
       display: inline-block;
     }
-    .checkbox-container {
-      margin-top: 25px;
-      font-size: 16px;
-    }
+    .checkbox-container { margin-top: 25px; font-size: 16px; }
   </style>
 </head>
-
 <body>
 
 <h1>Scanner App</h1>
 
+<!-- Open Scanner button -->
 <button id="openScanner">Open Scanner App</button>
 
 <!-- iPhone instructions -->
@@ -53,6 +45,7 @@
   </ol>
 </div>
 
+<!-- Checkbox for auto-open -->
 <div class="checkbox-container">
   <input type="checkbox" id="autoOpenCheckbox">
   <label for="autoOpenCheckbox">Next time, go straight to app</label>
@@ -61,33 +54,27 @@
 <script>
 const scannerUrl = "https://script.google.com/macros/s/AKfycbzfDIRd2ZyHA3CNmMV3Jh1lK_-Z8PJzJmC3cSCj97J7E9vLegDcBz4eCaDvzKBAsxQ/exec";
 
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-
-const openButton = document.getElementById("openScanner");
-const instructions = document.getElementById("iphoneInstructions");
-const checkbox = document.getElementById("autoOpenCheckbox");
-
-// Detect if app is launched from home screen
-const isInstalled = window.matchMedia('(display-mode: standalone)').matches ||
-                    window.navigator.standalone === true;
-
-// Auto-open if previously opted in
+// --- AUTO-OPEN IMMEDIATELY IF USER OPTED IN ---
 if (localStorage.getItem("scannerAutoOpen") === "true") {
   window.location.replace(scannerUrl);
 }
 
-// Show iOS instructions
+// --- DETECT PLATFORM ---
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const openButton = document.getElementById("openScanner");
+const instructions = document.getElementById("iphoneInstructions");
+const checkbox = document.getElementById("autoOpenCheckbox");
+
+// Show iPhone instructions
 if (isIOS) instructions.style.display = "block";
 
-// Open Scanner button
+// Open Scanner button click
 openButton.addEventListener("click", () => {
-  if (checkbox.checked) {
-    localStorage.setItem("scannerAutoOpen", "true");
-  }
+  if (checkbox.checked) localStorage.setItem("scannerAutoOpen", "true");
   window.location.href = scannerUrl;
 });
 
-// Service worker
+// --- SERVICE WORKER ---
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
@@ -100,29 +87,26 @@ installButton.style.display = "none";
 installButton.style.marginTop = "20px";
 document.body.insertBefore(installButton, openButton.nextSibling);
 
-// Show install button if PWA is eligible and not installed
+// Detect if app is launched from home screen
+const isInstalled = window.matchMedia('(display-mode: standalone)').matches ||
+                    window.navigator.standalone === true;
+
+// Show install button if eligible and not installed
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  if (!isInstalled) {
-    installButton.style.display = "inline-block";
-  }
+  if (!isInstalled) installButton.style.display = "inline-block";
 });
 
-// On click, show system install prompt
+// Trigger install prompt on button click
 installButton.addEventListener("click", async () => {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
-  await deferredPrompt.userChoice;
+  const choiceResult = await deferredPrompt.userChoice;
   deferredPrompt = null;
   installButton.style.display = "none";
 });
-
-// Also hide button if app is launched from home screen
-if (isInstalled) installButton.style.display = "none";
 </script>
-
-
 
 </body>
 </html>
