@@ -59,62 +59,69 @@
 </div>
 
 <script>
-  const scannerUrl =
-    "https://script.google.com/macros/s/AKfycbzfDIRd2ZyHA3CNmMV3Jh1lK_-Z8PJzJmC3cSCj97J7E9vLegDcBz4eCaDvzKBAsxQ/exec";
+const scannerUrl = "https://script.google.com/macros/s/AKfycbzfDIRd2ZyHA3CNmMV3Jh1lK_-Z8PJzJmC3cSCj97J7E9vLegDcBz4eCaDvzKBAsxQ/exec";
 
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
-  const openButton = document.getElementById("openScanner");
-  const instructions = document.getElementById("iphoneInstructions");
-  const checkbox = document.getElementById("autoOpenCheckbox");
+const openButton = document.getElementById("openScanner");
+const instructions = document.getElementById("iphoneInstructions");
+const checkbox = document.getElementById("autoOpenCheckbox");
 
-  // --- AUTO OPEN IF USER OPTED IN ---
-  if (localStorage.getItem("scannerAutoOpen") === "true") {
-    window.location.replace(scannerUrl);
+// Detect if app is launched from home screen
+const isInstalled = window.matchMedia('(display-mode: standalone)').matches ||
+                    window.navigator.standalone === true;
+
+// Auto-open if previously opted in
+if (localStorage.getItem("scannerAutoOpen") === "true") {
+  window.location.replace(scannerUrl);
+}
+
+// Show iOS instructions
+if (isIOS) instructions.style.display = "block";
+
+// Open Scanner button
+openButton.addEventListener("click", () => {
+  if (checkbox.checked) {
+    localStorage.setItem("scannerAutoOpen", "true");
   }
+  window.location.href = scannerUrl;
+});
 
-  // --- IPHONE INSTRUCTIONS ---
-  if (isIOS) {
-    instructions.style.display = "block";
-  }
+// Service worker
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
 
-  // --- OPEN SCANNER ---
-  openButton.addEventListener("click", () => {
-    if (checkbox.checked) {
-      localStorage.setItem("scannerAutoOpen", "true");
-    }
-    window.location.href = scannerUrl;
-  });
+// --- INSTALL BUTTON ---
+let deferredPrompt;
+const installButton = document.createElement("button");
+installButton.textContent = "Install Scanner App";
+installButton.style.display = "none";
+installButton.style.marginTop = "20px";
+document.body.insertBefore(installButton, openButton.nextSibling);
 
-  // --- ANDROID INSTALL BUTTON ---
-  let deferredPrompt;
-  const installButton = document.createElement("button");
-  installButton.textContent = "Install Scanner App";
-  installButton.style.display = "none";
-  installButton.style.marginTop = "20px";
-
-  document.body.insertBefore(installButton, openButton.nextSibling);
-
-  window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
+// Show install button if PWA is eligible and not installed
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!isInstalled) {
     installButton.style.display = "inline-block";
-  });
-
-  installButton.addEventListener("click", async () => {
-    if (!deferredPrompt) return;
-
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    installButton.style.display = "none";
-  });
-
-  // --- SERVICE WORKER ---
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js");
   }
+});
+
+// On click, show system install prompt
+installButton.addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  installButton.style.display = "none";
+});
+
+// Also hide button if app is launched from home screen
+if (isInstalled) installButton.style.display = "none";
 </script>
+
 
 
 </body>
