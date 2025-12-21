@@ -64,33 +64,58 @@
 
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
-  const button = document.getElementById("openScanner");
+  const openButton = document.getElementById("openScanner");
   const instructions = document.getElementById("iphoneInstructions");
   const checkbox = document.getElementById("autoOpenCheckbox");
 
-  // If user previously opted in → auto open
+  // --- AUTO OPEN IF USER OPTED IN ---
   if (localStorage.getItem("scannerAutoOpen") === "true") {
     window.location.replace(scannerUrl);
   }
 
-  // Show iPhone instructions
+  // --- IPHONE INSTRUCTIONS ---
   if (isIOS) {
     instructions.style.display = "block";
   }
 
-  // Button click
-  button.addEventListener("click", () => {
+  // --- OPEN SCANNER ---
+  openButton.addEventListener("click", () => {
     if (checkbox.checked) {
       localStorage.setItem("scannerAutoOpen", "true");
     }
     window.location.href = scannerUrl;
   });
 
-  // Register Service Worker (required for Android install banner)
+  // --- ANDROID INSTALL BUTTON ---
+  let deferredPrompt;
+  const installButton = document.createElement("button");
+  installButton.textContent = "Install Scanner App";
+  installButton.style.display = "none";
+  installButton.style.marginTop = "20px";
+
+  document.body.insertBefore(installButton, openButton.nextSibling);
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installButton.style.display = "inline-block";
+  });
+
+  installButton.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    installButton.style.display = "none";
+  });
+
+  // --- SERVICE WORKER ---
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js");
   }
 </script>
+
 
 </body>
 </html>
